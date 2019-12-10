@@ -1,41 +1,59 @@
 var readline = require('readline-sync');
 var request = require('request');
+let postcode = readline.question('please enter the postcode:\t');
 
-let postcode = readline.question('please enter the postcode:      ');
+function getCoordinates(postcode, successCallback) {
+  let url = `https://api.postcodes.io/postcodes/${postcode}`;
 
-postcode_to_LonLat_url = 'https://api.postcodes.io/postcodes/'+postcode;
-console.log(postcode_to_LonLat_url);
+  request(url, (error, response, body) => {
+    let location = JSON.parse(body);
+    let longitude = location.result.longitude;
+    let latitude = location.result.latitude;
+    successCallback([longitude, latitude]);
+  });
+}
+
+function getNearestBusStops(coordinates, successCallback) {
+
+  let url = `https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&lat=${coordinates[1]}&lon=${coordinates[0]}&app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
+
+  request(url, function (error, response, body) {
+    let nearest_stops = JSON.parse(body);
+    successCallback(nearest_stops.stopPoints[0].id);
+  });
+
+}
 
 
+function displayArrivalPredictions(stopcode, successCallback){
 
-request(postcode_to_LonLat_url, function (error, response, body) {
-  console.log(body);
-  let location = JSON.parse(body);
-  console.log(location.longitude)
-});
+  let url = `https://api.tfl.gov.uk/StopPoint/${stopcode}/Arrivals?app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
+
+  request(url, function (error, response, body) {
+    let arrival_predictions = JSON.parse(body);
+    successCallback(arrival_predictions);
+  });
+
+}
+
+getCoordinates(postcode, coordinates =>
+  getNearestBusStops(coordinates, function(stopcode) {
+    displayArrivalPredictions(stopcode, function(arrival_predictions){
 
 
-
-
-let stopcode = readline.question('please enter stopcode:   ')
-
-request_url = 'https://api.tfl.gov.uk/StopPoint/'+stopcode+'/Arrivals'+'?app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518'
-
-
-request(request_url, function (error, response, body) {
-  console.log('error:', error); // Print the error if one occurred
-  let arrival_predictions = JSON.parse(body); 
-
-  for (let i = 0; i<5 ; i++){
-
-    let prediction = arrival_predictions[i]
-    
-    console.log('Line name:   ' +  prediction.lineName);
-    console.log('Destination:  '+ prediction.destinationName);
-    console.log('expected arrival:   '+ prediction.expectedArrival + "\n");
-
-    
-
-  }
+    for (let i = 0; i<5 ; i++){
   
-});
+      let prediction = arrival_predictions[i];
+      
+      console.log(`Line name:\t ${prediction.lineName}`);
+      console.log(`Destination:\t ${prediction.destinationName}`);
+      console.log(`expected arrival:\t ${prediction.expectedArrival} \n`);
+  
+    }
+  })
+  })
+);
+
+
+
+
