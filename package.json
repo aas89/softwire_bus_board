@@ -1,0 +1,24 @@
+{
+  "name": "softwire_bus_board",
+  "version": "1.0.0",
+  "description": "Bus board pair project softwire 10/12/19",
+  "main": "busBoard.js",
+  "dependencies": {
+    "readline-sync": "^1.4.10",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aas89/softwire_bus_board.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aas89/softwire_bus_board/issues"
+  },
+  "homepage": "https://github.com/aas89/softwire_bus_board#readme"
+}
