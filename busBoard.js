@@ -1,27 +1,31 @@
-var readline = require('readline-sync');
-var request = require('request');
+import ArrivalPrediction from './ArrivalPredictions.js';
+
+import readline from 'readline-sync';
+import request from 'request';
+import Coordinates from './Coordinates.js';
+
 let postcode = readline.question('please enter the postcode:\t');
+
 
 function getCoordinates(postcode, successCallback) {
   let url = `https://api.postcodes.io/postcodes/${postcode}`;
 
   request(url, (error, response, body) => {
     let location = JSON.parse(body);
-    let longitude = location.result.longitude;
-    let latitude = location.result.latitude;
-    successCallback([longitude, latitude]);
+    const coordinateObjects  = new Coordinates(location.result.longitude, location.result.latitude);
+    successCallback(coordinateObjects);
   });
 }
 
 function getNearestBusStops(coordinates, successCallback) {
 
-  let url = `https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&lat=${coordinates[1]}&lon=${coordinates[0]}&app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
+  let url = `https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&lat=${coordinates.latitude}&lon=${coordinates.longitude}&app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
 
   request(url, function (error, response, body) {
-    let nearest_stops = JSON.parse(body);
-    let nearest_two = [nearest_stops.stopPoints[0],nearest_stops.stopPoints[1]];
-    let stopcodes = [nearest_two[0].id, nearest_two[1].id];
-    let stopnames = [nearest_two[0].commonName, nearest_two[1].commonName];
+    let nearest_stops = JSON.parse(body).stopPoints.slice(0,2);
+    
+    let stopcodes = nearest_stops.map(x => x.id);
+    let stopnames = nearest_stops.map(x => x.commonName);
 
     successCallback(stopcodes, stopnames);
   });
@@ -35,8 +39,8 @@ function getArrivalPredictions(stopcode, successCallback) {
 
   request(url, function (error, response, body) {
     let arrival_predictions = JSON.parse(body);
-
-    successCallback(arrival_predictions);
+    const arrivalPredictionObjects  = arrival_predictions.map(prediction => new ArrivalPrediction(prediction.lineName, prediction.destinationName, prediction.timeToStation))
+    successCallback(arrivalPredictionObjects);
   });
 
 }
@@ -44,13 +48,13 @@ function getArrivalPredictions(stopcode, successCallback) {
 getCoordinates(postcode, coordinates =>
   getNearestBusStops(coordinates, (stopcodes, stopnames) => {
     for (let j = 0; j<stopcodes.length; j++) {
-      getArrivalPredictions(stopcodes[j], arrival_predictions => {
+      getArrivalPredictions(stopcodes[j], arrivalPredictionObjects => {
 
         console.log("---------------------------------------------------------------")
         console.log(`Stop name:\t ${stopnames[j]}\n`);
         for (let i = 0; i < 5; i++) {
 
-          let prediction = arrival_predictions[i];
+          let prediction = arrivalPredictionObjects[i];
         
           
           console.log(`Line name:\t ${prediction.lineName}`);
