@@ -21,7 +21,7 @@ function getNearestBusStops(coordinates, successCallback) {
 
   let url = `https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&lat=${coordinates.latitude}&lon=${coordinates.longitude}&app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
 
-  request(url, function (error, response, body) {
+  request(url, (error, response, body) => {
     let nearest_stops = JSON.parse(body).stopPoints.slice(0,2);
     
     let stopcodes = nearest_stops.map(x => x.id);
@@ -37,7 +37,7 @@ function getArrivalPredictions(stopcode, successCallback) {
 
   let url = `https://api.tfl.gov.uk/StopPoint/${stopcode}/Arrivals?app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
 
-  request(url, function (error, response, body) {
+  request(url, (error, response, body) => {
     let arrival_predictions = JSON.parse(body);
     const arrivalPredictionObjects  = arrival_predictions.map(prediction => new ArrivalPrediction(prediction.lineName, prediction.destinationName, prediction.timeToStation))
     successCallback(arrivalPredictionObjects);
