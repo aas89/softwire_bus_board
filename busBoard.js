@@ -7,22 +7,22 @@ import request from 'request';
 
 
 
-function getCoordinates(successCallback) {
+function getCoordinates() {
   let postcode = readline.question('please enter the postcode:\t');
   let url = `https://api.postcodes.io/postcodes/${postcode}`;
       request(url, (error, response, body) => {
         if ( response.statusCode !== 200) {
           console.log('Invalid Postcode, please try again')
-          getCoordinates(successCallback)
+          getCoordinates();
         } else {
           let location = JSON.parse(body);
           const coordinateObjects  = new Coordinates(location.result.longitude, location.result.latitude);
-          successCallback(coordinateObjects);
+          return coordinateObjects;
         }
       }
       )};
 
-function getNearestBusStops(coordinates, successCallback) {
+function getNearestBusStops(coordinates) {
 
   let url = `https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&radius=2000&lat=${coordinates.latitude}&lon=${coordinates.longitude}&app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
   request(url, function (error, response, body) {
@@ -33,13 +33,13 @@ function getNearestBusStops(coordinates, successCallback) {
       console.log('Sorry there are no bus stops within 2km, please try a different postcode...?');
     }
 
-    successCallback(stopInfo);
+    return stopInfo;
   });
 
 }
 
 
-function getArrivalPredictions(stopInfoSingle, successCallback) {
+function getArrivalPredictions(stopInfoSingle) {
   
     let url = `https://api.tfl.gov.uk/StopPoint/${stopInfoSingle.stopCode}/Arrivals?app_id=343014cd&app_key=9847cc3d0bbe15906723b4186e3aa518`;
    
@@ -48,15 +48,17 @@ function getArrivalPredictions(stopInfoSingle, successCallback) {
       var arrival_predictions = JSON.parse(body).slice(0,5);
       var arrivalPredictionObjects  = arrival_predictions.map(prediction => new ArrivalPrediction( prediction.lineName, prediction.destinationName, prediction.timeToStation))
 
-      successCallback(arrivalPredictionObjects,stopInfoSingle);
+      return arrivalPredictionObjects,stopInfoSingle;
       
     });
   
 }
 
+//function loop(arrivalPredictionObjects, stopInfo){
 
+//}
 
-function printPredictions(busStopsPredictions,stopInfoSingle,successCallback){
+function printPredictions(busStopsPredictions,stopInfoSingle){
     console.log("---------------------------------------------------------------");
     console.log(`Stop name:\t ${stopInfoSingle.stopName}\n`);
     if (busStopsPredictions.length === 0){
@@ -79,17 +81,12 @@ function printPredictions(busStopsPredictions,stopInfoSingle,successCallback){
 
 
 
-getCoordinates(coordinates =>
-  getNearestBusStops(coordinates, stopInfo => {
+getCoordinates()
+.then(coordinates => getNearestBusStops(coordinates))
+.then(stopInfo => {
     for (let j = 0; j<2; j++){
-      getArrivalPredictions(stopInfo[j], (busStopsPredictions,stopInfoSingle) => {
-        printPredictions(busStopsPredictions, stopInfoSingle)
-
-        
-      })
-    }
+      getArrivalPredictions(stopInfo[j])
+      .then(arrivalPredictionObjects, stopInfoSingle => printPredictions(arrivalPredictionObjects,stopInfoSingle)
+)}
+  }); 
     
-      
-    })
-);
-       
