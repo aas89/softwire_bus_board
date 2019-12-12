@@ -37,7 +37,10 @@ function loadData(postcode) {
                 <li>${predictions[1][0][2].timeToStation} minutes: ${predictions[1][0][2].lineName} to ${predictions[1][0][2].destinationName}</li>
                 <li>${predictions[1][0][3].timeToStation} minutes: ${predictions[1][0][3].lineName} to ${predictions[1][0][3].destinationName}</li>
                 <li>${predictions[1][0][4].timeToStation} minutes: ${predictions[1][0][4].lineName} to ${predictions[1][0][4].destinationName}</li>
-            </ul>`
+            </ul>
+
+            <h3>   </h3>
+        <img src="bus_image.jpg" alt="Lovely picture of a bus"></img>`
 
 
     };
