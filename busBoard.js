@@ -7,9 +7,29 @@ import request from 'request';
 import express from 'express';
 
 
-function getCoordinates() {
+function getPostcode(){
+  return new Promise(function(resolve,reject){
+    const app = express();
+    const port = 3001;
+    app.get('/', (req, res) => res.send('Please enter postcode:\tas search?postcode=<your_postcode>'));
+    app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+    
+
+    app.get('/search?', (req, res) =>{
+      
+      var postcode = req.query.postcode;
+
+      resolve(postcode)
+    
+    });
+    
+
+  })
+}
+
+function getCoordinates(postcode) {
   return new Promise(function (resolve, reject) {
-    let postcode = readline.question('please enter the postcode:\t');
+    // let postcode = readline.question('please enter the postcode:\t');
     let url = `https://api.postcodes.io/postcodes/${postcode}`;
     request(url, (error, response, body) => {
 
@@ -75,16 +95,25 @@ function printPredictions(arrivalPredictionsArray) {
         console.log(`Destination:\t ${prediction.destinationName}`);
         let minutes = parseInt(Number(prediction.timeToStation) / 60);
         console.log(`Time to arrival:\t ${minutes} minutes\n`);
-
-
       }
+            
     }
 
   }
 }
 
 
-getCoordinates()
+
+
+
+
+
+getPostcode()
+  .then(postcode => getCoordinates(postcode))
   .then(coordinates => getNearestBusStops(coordinates))
   .then(stopInfoArray => getAllArrivalPredictions(stopInfoArray))
   .then((arrivalPredictionsArray) => printPredictions(arrivalPredictionsArray));
+
+
+
+
