@@ -7,25 +7,26 @@ import request from 'request';
 import express from 'express';
 
 
-function getPostcode(){
-  return new Promise(function(resolve,reject){
-    const app = express();
-    const port = 3001;
-    app.get('/', (req, res) => res.send('Please enter postcode:\tas search?postcode=<your_postcode>'));
-    app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-    
+const app = express();
+const port = 3001;
 
-    app.get('/search?', (req, res) =>{
-      
-      var postcode = req.query.postcode;
+app.get('/', (req, res) => res.send('Please enter postcode:\tas search?postcode=<your_postcode>'));
 
-      resolve(postcode)
-    
-    });
-    
+app.get('/search?', (req, res) => {
+  var postcode = req.query.postcode;
+  
+  getCoordinates(postcode)
+  .then(coordinates => getNearestBusStops(coordinates))
+  .then(stopInfoArray => getAllArrivalPredictions(stopInfoArray))
+  .then((arrivalPredictionsArray) => res.send(arrivalPredictionsArray));
 
-  })
-}
+  
+});
+
+
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
 
 function getCoordinates(postcode) {
   return new Promise(function (resolve, reject) {
@@ -100,7 +101,8 @@ function printPredictions(arrivalPredictionsArray) {
     }
 
   }
-}
+
+  
 
 
 
@@ -108,11 +110,7 @@ function printPredictions(arrivalPredictionsArray) {
 
 
 
-getPostcode()
-  .then(postcode => getCoordinates(postcode))
-  .then(coordinates => getNearestBusStops(coordinates))
-  .then(stopInfoArray => getAllArrivalPredictions(stopInfoArray))
-  .then((arrivalPredictionsArray) => printPredictions(arrivalPredictionsArray));
+
 
 
 
