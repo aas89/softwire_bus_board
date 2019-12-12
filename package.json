@@ -4,6 +4,7 @@
   "description": "Bus board pair project softwire 10/12/19",
   "main": "busBoard.js",
   "dependencies": {
+    "express": "^4.17.1",
     "readline-sync": "^1.4.10",
     "request": "^2.88.0"
   },
